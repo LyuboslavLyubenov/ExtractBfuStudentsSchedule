@@ -6,7 +6,6 @@ import datetime
 
 
 # Usage: BfuScheduleExtractor().extract_schedule(faculty, form, level)
-# Example: BfuScheduleExtractor().extract_schedule('')
 class BfuScheduleExtractor(object):
     def get_select_tag_options_text(self, html_soup, id):
         options = html_soup.find(id=id).find_all('option')
@@ -14,10 +13,12 @@ class BfuScheduleExtractor(object):
         return list(map(lambda option: option.text, options))
 
     def convert_url_to_soup(self, url):
+        """Creates soup from response from GET request made to specified url"""
         request = requests.get(url)
         return BeautifulSoup(request.content, 'lxml')
 
     def get_schedules_urls(self, type, form, level):
+        """Returns list containing links to all schedules (seperated by week) for specified major and year"""
         url = 'https://e-services.bfu.bg/common/graphic.php?c={}&o={}&k={}&submit=Покажи+графика'
         url = url.format(type, form, level)
         soup = self.convert_url_to_soup(url)
@@ -25,6 +26,7 @@ class BfuScheduleExtractor(object):
         return list(map(lambda tag: 'https://e-services.bfu.bg/common/' + tag.attrs['href'], schedule_a_tags))
 
     def extract_majors(self, majors_soup):
+        """Extracts available majors from soup made from GET response made to any schedule page"""
         result = []
         majors_list = list(majors_soup)
 
@@ -49,6 +51,11 @@ class BfuScheduleExtractor(object):
         return major_index
 
     def extract_schedule_for_day(self, elements, majors):
+        """ 
+            Extracts schedule for day
+            
+            elements - html soup created from part of the table containing classes for one day
+        """
         majors_schedule = {}
 
         for major in majors:
@@ -105,13 +112,14 @@ class BfuScheduleExtractor(object):
 
         if form < 1 or form > 3:
             sys.exit('Невалидна форма на обучение')
-
+            
+        #form with id 3 have to complete 6 semesters :(
         available_course_levels = range(1, 6 if form != 3 else 3)
         available_course_levels = list(map(lambda level: str(level), available_course_levels))
-
+        
         if str(course_level) not in available_course_levels:
             sys.exit('Невалиден курс')
-
+        
         schedules_urls = self.get_schedules_urls(faculty, form, course_level)[::-1]
         schedule = []
 
