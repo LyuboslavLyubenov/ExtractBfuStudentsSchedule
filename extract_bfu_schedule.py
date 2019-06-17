@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import sys
 import datetime
 
-
 # Usage: BfuScheduleExtractor().extract_schedule(faculty, form, level)
 class BfuScheduleExtractor(object):
     def get_select_tag_options_text(self, html_soup, id):
@@ -22,7 +21,7 @@ class BfuScheduleExtractor(object):
         url = 'https://e-services.bfu.bg/common/graphic.php?c={}&o={}&k={}&submit=Покажи+графика'
         url = url.format(type, form, level)
         soup = self.convert_url_to_soup(url)
-        schedule_a_tags = soup.find(id='info').find_all('a')
+        schedule_a_tags = soup.select('.card:nth-child(3)')[0].find_all('a')
         return list(map(lambda tag: 'https://e-services.bfu.bg/common/' + tag.attrs['href'], schedule_a_tags))
 
     def extract_majors(self, majors_soup):
